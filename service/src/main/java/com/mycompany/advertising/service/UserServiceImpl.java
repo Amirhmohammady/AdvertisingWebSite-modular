@@ -63,7 +63,7 @@ public class UserServiceImpl implements UserService {
         } else {
             userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
             userDto.setEnabled(false);
-            userDto.grantAuthority(Role.ROLE_USER);
+            userDto.setAuthority(Role.ROLE_USER);
             //2222222222222222222222222222
             userRepository.save(userMapper.map(userDto));
             verificationTokenService.saveVerificationToken(userDto);

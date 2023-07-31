@@ -11,10 +11,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by Amir on 10/29/2019.
@@ -163,15 +160,13 @@ public class UserTo  {
         this.enabled = enabled;
     }
 
-    public void grantAuthority(Role authority) {
+    public void addAuthority(Role authority) {
         if (roles == null) roles = new HashSet<>();
         roles.add(authority);
     }
-
-    public List<GrantedAuthority> getAuthorities() {
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        roles.forEach(role -> authorities.add(new SimpleGrantedAuthority(role.toString())));
-        return authorities;
+    public void setAuthority(Role... authority) {
+        roles = new HashSet<>();
+        roles.addAll(Arrays.asList(authority));
     }
 
     @Override

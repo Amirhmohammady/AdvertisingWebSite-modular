@@ -1,19 +1,17 @@
 package com.mycompany.advertising.api.dto;
 
+import com.mycompany.advertising.api.enums.Role;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import com.mycompany.advertising.api.enums.Role;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
 
 /**
  * Created by Amir on 10/29/2019.
  */
 
-public class UserDto implements UserDetails{
+public class UserDto implements UserDetails {
     private Long id;
     private String username;
     private String profilename;
@@ -133,9 +131,14 @@ public class UserDto implements UserDetails{
         this.enabled = enabled;
     }
 
-    public void grantAuthority(Role authority) {
+    public void addAuthority(Role authority) {
         if (roles == null) roles = new HashSet<>();
         roles.add(authority);
+    }
+
+    public void setAuthority(Role... authority) {
+        roles = new HashSet<>();
+        roles.addAll(Arrays.asList(authority));
     }
 
     @Override

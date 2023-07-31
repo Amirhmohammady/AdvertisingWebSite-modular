@@ -73,8 +73,7 @@ public class ScheduledTasks {
         user.setPassword(adminPassword);
         user.setUsername(adminPhoneNumber);
         user.setProfilename(adminUserNmae);
-        user.grantAuthority(Role.ROLE_ADMIN);
-        user.grantAuthority(Role.ROLE_USER);
+        user.setAuthority(Role.ROLE_ADMIN, Role.ROLE_USER);
         try {
             userservice.createUser(user);
             userservice.activateUser(adminPhoneNumber);
