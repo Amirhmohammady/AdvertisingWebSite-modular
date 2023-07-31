@@ -1,0 +1,119 @@
+package com.mycompany.advertising.web.controller;
+
+import com.mycompany.advertising.api.AdvertiseService;
+import com.mycompany.advertising.api.AuthenticationFacadeService;
+import com.mycompany.advertising.api.StorageService;
+import com.mycompany.advertising.api.dto.AdvertiseDto;
+import com.mycompany.advertising.api.dto.UserDto;
+import com.mycompany.advertising.api.enums.AdvertiseStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.net.URL;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Created by Amir on 11/2/2019.
+ */
+@Controller
+public class AdvertiseController {
+
+    @Autowired
+    AuthenticationFacadeService authenticationFacade;
+    @Value("${amir.error.folder}")
+    String errorfolder;
+    @Autowired
+    private StorageService storageService;
+    @Autowired
+    private AdvertiseService advertiseService;
+    //private UserService userService;
+
+    @GetMapping("/showAdvertise/id={id}")
+    public String showAdvertise(Model model, @PathVariable Long id) {
+        Optional<AdvertiseDto> advertise = advertiseService.getAdvertiseById(id);
+        if (!advertise.isPresent() || advertise.get().getStatus() != AdvertiseStatus.Accepted) {
+            return errorfolder + "error-404";
+        }
+/*        if (!authenticationFacade.hasRole("ROLE_ADMIN") && advertise.get().getStatus() != AdvertiseStatus.Accepted)
+            return errorfolder + "error-403";*/
+        model.addAttribute("advertise", advertise.get());
+        return "showAdvertise";
+    }
+
+    @Secured({"ROLE_ADMIN", "ROLE_OWNER"})
+    @GetMapping("/showAdvertiseAdminMode/id={id}")
+    public String showAdvertiseAdminMode(Model model, @PathVariable Long id) {
+        Optional<AdvertiseDto> advertise = advertiseService.getAdvertiseById(id);
+        if (!advertise.isPresent()) {
+            return errorfolder + "error-404";
+        }
+        model.addAttribute("advertise", advertise.get());
+        model.addAttribute("pfragment01", "showAdvertiseAdminMode");
+        return "showAdvertise";
+    }
+
+    @GetMapping("/addAdvertise")
+    @Secured({"ROLE_USER", "ROLE_ADMIN"})
+    public String addAdvertise() {
+        return "add_advertise";
+    }
+
+    @GetMapping(value = "/editAdvertise/id={id}")//, method = {RequestMethod.GET, RequestMethod.POST})
+    @Secured({"ROLE_USER", "ROLE_ADMIN"})
+    //@PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    public String editAdvertiseGet(Model model, @PathVariable Long id) {
+        Optional<AdvertiseDto> advertiseoptl = advertiseService.getAdvertiseById(id);
+        if (!advertiseoptl.isPresent()) return errorfolder + "error-404";
+        UserDto userTo = authenticationFacade.getCurrentUser();
+        if (userTo == null || userTo.getId() != advertiseoptl.get().getUserDto().getId()) return errorfolder + "error-403";
+        model.addAttribute("advertise", advertiseoptl.get());
+        return "editAdvertise";
+    }
+
+    @PostMapping(value = "/editAdvertise/id={id}")//, method = {RequestMethod.GET, RequestMethod.POST})
+    @Secured({"ROLE_USER", "ROLE_ADMIN"})
+    //@PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    public String editAdvertisePost(Model model, @PathVariable Long id,
+                                    @RequestParam(required = false) MultipartFile pic1,
+                                    @RequestParam(required = false) String description,
+                                    @RequestParam(required = false) URL tel_link,
+                                    @RequestParam(required = true) String title,
+                                    @RequestParam(required = false) MultipartFile pic2) {
+        Optional<AdvertiseDto> advertiseoptl = advertiseService.getAdvertiseById(id);
+        if (!advertiseoptl.isPresent()) return errorfolder + "error-404";
+        UserDto userTo = authenticationFacade.getCurrentUser();
+        if (userTo == null || userTo.getId() != advertiseoptl.get().getUserDto().getId()) return errorfolder + "error-403";
+        AdvertiseDto advertise = advertiseoptl.get();
+        //==========
+        String succsessMessage = new String();
+        List<URL> files;
+        if (pic1 != null && !pic1.isEmpty()) {
+            try {
+                files = storageService.storeImage(pic1);
+                succsessMessage += "Successfully uploaded 1st pic";
+                advertise.setImageUrl1(files.get(0));
+                advertise.setSmallImageUrl1(files.get(1));
+            } catch (Exception e) {
+                succsessMessage += "Error uploading 1nd pic:" + e.getMessage();
+                e.printStackTrace();
+            }
+        }
+        advertise.setWebSiteLink(tel_link);
+        advertise.setText(description);
+        advertise.setTitle(title);
+        advertiseService.saveAdvertise(advertise);
+        succsessMessage += "\nSuccessfully updated advertise";
+        model.addAttribute("succsessmessage", succsessMessage);
+        model.addAttribute("advertise", advertise);
+        return "editAdvertise";
+    }
+}
