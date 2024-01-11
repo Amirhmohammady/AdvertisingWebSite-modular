@@ -4,21 +4,21 @@ import com.mycompany.advertising.api.enums.Role;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Amir on 10/29/2019.
  */
 
 @Entity
-public class UserTo  {
+public class UserTo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)//AUTO
@@ -70,6 +70,18 @@ public class UserTo  {
 
     public String getFullname() {
         return fullname;
+    }
+
+    public void setAccountNonExpired(boolean accountNonExpired) {
+        this.accountNonExpired = accountNonExpired;
+    }
+
+    public void setAccountNonLocked(boolean accountNonLocked) {
+        this.accountNonLocked = accountNonLocked;
+    }
+
+    public void setCredentialsNonExpired(boolean credentialsNonExpired) {
+        this.credentialsNonExpired = credentialsNonExpired;
     }
 
     public void setFullname(String fullname) {
@@ -164,9 +176,18 @@ public class UserTo  {
         if (roles == null) roles = new HashSet<>();
         roles.add(authority);
     }
+
     public void setAuthority(Role... authority) {
         roles = new HashSet<>();
         roles.addAll(Arrays.asList(authority));
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 
     @Override
